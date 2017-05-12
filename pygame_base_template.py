@@ -4,6 +4,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+PI = 3.141592653
 
 pygame.init()
 
@@ -28,6 +29,7 @@ spaceship_x = size[0]/2.0
 spaceship_y = size[1]-15
 spaceship_move = 15
 spaceship_size = 15
+blob_draw = True
 
 while done is not True:
     for event in pygame.event.get():
@@ -50,15 +52,25 @@ while done is not True:
                 spaceship_x += spaceship_move
 
     screen.fill(BLACK)
+    if blob_draw:
+
+        blob = pygame.draw.circle(screen, RED, [100, 100], 20)
 
     pygame.draw.rect(screen, GREEN, [spaceship_x, spaceship_y, spaceship_size, spaceship_size])
 
     for i, coords in enumerate(objects):
         pygame.draw.line(screen, WHITE, coords, [coords[0], coords[1]+10], 2)
 
+
         if y-10 > 0:
 
             objects[i][1] -= y_change
+        if coords[1] in range(blob.topleft[1], blob.bottomleft[1]) and coords[0] in range(blob.topleft[0], blob.topright[0]):
+            blob_draw = False
+            objects.pop(i)
+            blob = pygame.draw.circle(screen, RED, [0, 0], 0)
+
+
 
     pygame.display.flip()
 
