@@ -38,13 +38,14 @@ class Spaceship(pygame.sprite.Sprite):
 class Blob(pygame.sprite.Sprite):
     """Blobs."""
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, size=40):
         super(Blob, self).__init__()
-        self.image = pygame.Surface([40, 40])
+        self.image = pygame.Surface([size, size])
         self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.size = size
         self.direction = 'right'
 
     def move(self):
@@ -107,11 +108,20 @@ def main():
 
         screen.fill(BLACK)
 
-        for laser in lasers:
+        for blob in blobs:
 
-            hits = pygame.sprite.spritecollide(laser, blobs, True)
+            hits = pygame.sprite.spritecollide(blob, lasers, True)
             if hits:
-                lasers.remove(laser)
+                if blob.size < 25:
+                    blobs.remove(blob)
+                else:
+                    blob1 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                    blob2 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                    blob2.direction = 'left'
+
+                    blobs.remove(blob)
+                    blobs.add(blob1)
+                    blobs.add(blob2)
 
         for thing in blobs:
             thing.move()
