@@ -22,18 +22,36 @@ y = size[1]
 x_change = 0
 y_change = 3
 
-down = True
 objects = []
+
+spaceship_x = size[0]/2.0
+spaceship_y = size[1]-15
+spaceship_move = 15
+spaceship_size = 15
+
 while done is not True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
-        elif event.type == pygame.KEYDOWN:
-            objects.append([x, y])
+
+        if event.type == pygame.KEYDOWN:
+            # quit on escape
+            if event.key == pygame.K_ESCAPE:
+                done = True
+
+            # shoot if spacebar is hit
+            elif event.key == pygame.K_SPACE:
+                objects.append([spaceship_x+spaceship_size/2, spaceship_y])
+
+            elif event.key == pygame.K_LEFT and spaceship_x > 0:
+                spaceship_x -= spaceship_move
+
+            elif event.key == pygame.K_RIGHT and spaceship_x < size[0]:
+                spaceship_x += spaceship_move
 
     screen.fill(BLACK)
 
-    
+    pygame.draw.rect(screen, GREEN, [spaceship_x, spaceship_y, spaceship_size, spaceship_size])
 
     for i, coords in enumerate(objects):
         pygame.draw.line(screen, WHITE, coords, [coords[0], coords[1]+10], 2)
