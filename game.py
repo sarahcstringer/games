@@ -102,9 +102,14 @@ def main():
     blobs = pygame.sprite.Group()
     blob_start_x = range(size[0])
     blob_start_y = range(size[1]/3)
-    for i in range(4):
+
+    # ending game
+    wait = 0
+    killed = False
+    for i in range(3):
         blob = Blob(random.choice(blob_start_x), random.choice(blob_start_y))
         blobs.add(blob)
+
 
     # main game loop
     while done is not True:
@@ -127,30 +132,41 @@ def main():
                 elif event.key == pygame.K_LEFT:
                     player.rect.x -= 15
 
+        def process_blobs():
+            for blob in blobs:
+                hits = pygame.sprite.spritecollide(blob, lasers, True)
+                if hits:
+                    if blob.size < 25:
+                        blobs.remove(blob)
+                    else:
+                        blob1 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                        blob2 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                        blob2.direction = 'left'
+
+                        blobs.remove(blob)
+                        blobs.add(blob1)
+                        blobs.add(blob2)
+                blob.move()
+                blob._bounce()
+            blobs.draw(screen)
 
         screen.fill(BLACK)
-
-        for blob in blobs:
-
-            hits = pygame.sprite.spritecollide(blob, lasers, True)
-            if hits:
-                if blob.size < 25:
-                    blobs.remove(blob)
-                else:
-                    blob1 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
-                    blob2 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
-                    blob2.direction = 'left'
-
-                    blobs.remove(blob)
-                    blobs.add(blob1)
-                    blobs.add(blob2)
-
-        for thing in blobs:
-            thing.move()
-            thing._bounce()
-
-        blobs.draw(screen)
         spaceships.draw(screen)
+        player_kill = pygame.sprite.spritecollide(player, blobs, True)
+        if player_kill:
+            killed = True
+            
+        if killed:
+            player.image.fill(RED)
+            if wait < 100:
+                blobs.draw(screen)
+                wait += 1
+            else:
+                blobs = pygame.sprite.Group()
+        else:
+            process_blobs()
+
+        
 
         for laser in lasers:
             laser.rect.y -= 10
