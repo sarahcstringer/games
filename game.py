@@ -1,4 +1,5 @@
 import pygame
+import random
 
 # colors
 BLACK = (0, 0, 0)
@@ -18,7 +19,7 @@ class LaserBeam(pygame.sprite.Sprite):
 
     def __init__(self, x, y):
         super(LaserBeam, self).__init__()
-        self.image = pygame.Surface([2, 10])
+        self.image = pygame.Surface([2, 20])
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -47,6 +48,7 @@ class Blob(pygame.sprite.Sprite):
         self.rect.y = y
         self.size = size
         self.direction = 'right'
+        self.velocity = 1
 
     def move(self):
         """Move right and left across screen."""
@@ -59,6 +61,22 @@ class Blob(pygame.sprite.Sprite):
             if self.rect.x < 0:
                 self.direction = 'right'
 
+    # def bounce(self):
+    #     """Bounce"""
+
+    #     y = self._bounce()
+    #     self.rect.y = next(y)
+
+    def _bounce(self):
+        gravity = .1
+        slow = 0.9
+
+        self.rect.y = self.rect.y + self.velocity
+        if self.rect.y > size[1] - self.size:
+            self.velocity = -self.velocity*slow
+        else:
+            self.velocity = self.velocity + gravity
+
 
 def main():
 
@@ -69,7 +87,7 @@ def main():
 
     screen = pygame.display.set_mode(size)
     screen.fill(BLACK)
-    pygame.display.set_caption('Game')
+    pygame.display.set_caption('Pew Pew')
 
     clock = pygame.time.Clock()
 
@@ -80,9 +98,13 @@ def main():
     player = Spaceship()
     spaceships.add(player)
 
+    # create blobs
     blobs = pygame.sprite.Group()
-    blob = Blob(350, 350)
-    blobs.add(blob)
+    blob_start_x = range(size[0])
+    blob_start_y = range(size[1]/3)
+    for i in range(4):
+        blob = Blob(random.choice(blob_start_x), random.choice(blob_start_y))
+        blobs.add(blob)
 
     # main game loop
     while done is not True:
@@ -125,6 +147,7 @@ def main():
 
         for thing in blobs:
             thing.move()
+            thing._bounce()
 
         blobs.draw(screen)
         spaceships.draw(screen)
