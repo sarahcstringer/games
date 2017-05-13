@@ -8,7 +8,7 @@ A game built using Python and Pygame
     ```
     $ virtualenv env
     ```
-2. Source the environment
+2. Activate the environment
     ```
     $ source env/bin/activate
     ```
@@ -22,3 +22,9 @@ A game built using Python and Pygame
 ```
 $ python game.py
 ```
+
+# Commands
+- Spacebar shoots
+- Right arrow moves right
+- Left arrow moves left
+- ESC quits
