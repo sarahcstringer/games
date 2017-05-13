@@ -11,7 +11,7 @@ RED = (255, 0, 0)
 PI = 3.141592653
 
 # screen info
-size = (700, 500)
+screen_size = (700, 500)
 
 # characters and such
 class LaserBeam(pygame.sprite.Sprite):
@@ -28,13 +28,14 @@ class LaserBeam(pygame.sprite.Sprite):
 class Spaceship(pygame.sprite.Sprite):
     """Spaceship -- should only be one per game."""
 
-    def __init__(self):
+    def __init__(self, size):
         super(Spaceship, self).__init__()
-        self.image = pygame.Surface([15, 15])
+        self.size = size
+        self.image = pygame.Surface([size, size])
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.rect.x = size[0]/2.0
-        self.rect.y = size[1]-15
+        self.rect.x = screen_size[0]/2.0
+        self.rect.y = screen_size[1]-size
 
 class Blob(pygame.sprite.Sprite):
     """Blobs."""
@@ -54,7 +55,7 @@ class Blob(pygame.sprite.Sprite):
         """Move right and left across screen."""
         if self.direction == 'right':
             self.rect.x += 5
-            if self.rect.x > size[0]-10:
+            if self.rect.x > screen_size[0]-self.size:
                 self.direction = 'left'
         elif self.direction == 'left':
             self.rect.x -= 5
@@ -72,7 +73,7 @@ class Blob(pygame.sprite.Sprite):
         slow = 0.9
 
         self.rect.y = self.rect.y + self.velocity
-        if self.rect.y > size[1] - self.size:
+        if self.rect.y > screen_size[1] - self.size:
             self.velocity = -self.velocity*slow
         else:
             self.velocity = self.velocity + gravity
@@ -80,12 +81,30 @@ class Blob(pygame.sprite.Sprite):
 
 def main():
 
+    def process_blobs():
+        for blob in blobs:
+            hits = pygame.sprite.spritecollide(blob, lasers, True)
+            if hits:
+                if blob.size < 25:
+                    blobs.remove(blob)
+                else:
+                    blob1 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                    blob2 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
+                    blob2.direction = 'left'
+
+                    blobs.remove(blob)
+                    blobs.add(blob1)
+                    blobs.add(blob2)
+            blob.move()
+            blob._bounce()
+        blobs.draw(screen)
+
     # start the game
     pygame.init()
 
     # screen settings
 
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode(screen_size)
     screen.fill(BLACK)
     pygame.display.set_caption('Pew Pew')
 
@@ -95,21 +114,25 @@ def main():
 
     lasers = pygame.sprite.Group()
     spaceships = pygame.sprite.Group()
-    player = Spaceship()
+    player = Spaceship(size=15)
     spaceships.add(player)
 
     # create blobs
-    blobs = pygame.sprite.Group()
-    blob_start_x = range(size[0])
-    blob_start_y = range(size[1]/3)
+    def create_blobs():
+        blobs = pygame.sprite.Group()
+        blob_start_x = range(screen_size[0])
+        blob_start_y = range(screen_size[1]/3)
+
+        for i in range(3):
+            blob = Blob(random.choice(blob_start_x), random.choice(blob_start_y))
+            blobs.add(blob)
+        return blobs
 
     # ending game
     wait = 0
     killed = False
-    for i in range(3):
-        blob = Blob(random.choice(blob_start_x), random.choice(blob_start_y))
-        blobs.add(blob)
 
+    blobs = create_blobs()
 
     # main game loop
     while done is not True:
@@ -123,51 +146,40 @@ def main():
                     done = True
 
                 elif event.key == pygame.K_SPACE:
-                    laser = LaserBeam(player.rect.x+15/2.0, player.rect.y)
+                    laser = LaserBeam(player.rect.x+player.size/2.0, player.rect.y)
                     lasers.add(laser)
 
                 elif event.key == pygame.K_RIGHT:
-                    player.rect.x += 15
+                    player.rect.x += player.size
 
                 elif event.key == pygame.K_LEFT:
-                    player.rect.x -= 15
-
-        def process_blobs():
-            for blob in blobs:
-                hits = pygame.sprite.spritecollide(blob, lasers, True)
-                if hits:
-                    if blob.size < 25:
-                        blobs.remove(blob)
-                    else:
-                        blob1 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
-                        blob2 = Blob(blob.rect.x, blob.rect.y, blob.size *.75)
-                        blob2.direction = 'left'
-
-                        blobs.remove(blob)
-                        blobs.add(blob1)
-                        blobs.add(blob2)
-                blob.move()
-                blob._bounce()
-            blobs.draw(screen)
+                    player.rect.x -= player.size
 
         screen.fill(BLACK)
-        spaceships.draw(screen)
         player_kill = pygame.sprite.spritecollide(player, blobs, True)
         if player_kill:
             killed = True
             
         if killed:
-            import pdb; pdb.set_trace()
-            player.image.fill(RED)
-
             if wait < 100:
+                if wait % 5 == 0:
+                    player.image.fill(RED)
+                else:
+                    player.image.fill(GREEN)
                 blobs.draw(screen)
                 wait += 1
             else:
-                blobs = pygame.sprite.Group()
+                size = player.size
+                spaceships.remove(player)
+                player = Spaceship(size=size*2)
+                spaceships.add(player)
+                blobs = create_blobs()
+                killed = False
+                wait = 0
         else:
             process_blobs()
 
+        spaceships.draw(screen)
         
 
         for laser in lasers:
