@@ -118,12 +118,12 @@ def main():
     spaceships.add(player)
 
     # create blobs
-    def create_blobs():
+    def create_blobs(num):
         blobs = pygame.sprite.Group()
         blob_start_x = range(screen_size[0])
         blob_start_y = range(screen_size[1]/3)
 
-        for i in range(3):
+        for i in range(num):
             blob = Blob(random.choice(blob_start_x), random.choice(blob_start_y))
             blobs.add(blob)
         return blobs
@@ -132,7 +132,8 @@ def main():
     wait = 0
     killed = False
 
-    blobs = create_blobs()
+    blob_num = 1
+    blobs = create_blobs(blob_num)
 
     # main game loop
     while done is not True:
@@ -156,9 +157,11 @@ def main():
                     player.rect.x -= player.size
 
         screen.fill(BLACK)
+
         player_kill = pygame.sprite.spritecollide(player, blobs, True)
         if player_kill:
             killed = True
+            grow = player_kill[0].size
             
         if killed:
             if wait < 100:
@@ -171,16 +174,25 @@ def main():
             else:
                 size = player.size
                 spaceships.remove(player)
-                player = Spaceship(size=size*2)
+                player = Spaceship(size=size + grow)
                 spaceships.add(player)
-                blobs = create_blobs()
+                blob_num = blob_num - 1 if blob_num > 1 else 1
+                blobs = create_blobs(blob_num)
                 killed = False
                 wait = 0
         else:
+            if len(blobs.sprites()) == 0:
+                blob_num += 1
+                blobs = create_blobs(blob_num)
+                size = player.size
+                spaceships.remove(player)
+                player = Spaceship(size=size - grow) if size > 15 else Spaceship(size=size)
+                spaceships.add(player)
             process_blobs()
 
         spaceships.draw(screen)
         
+
 
         for laser in lasers:
             laser.rect.y -= 10
