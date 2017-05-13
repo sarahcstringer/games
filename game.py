@@ -157,7 +157,9 @@ def main():
             killed = True
             
         if killed:
+            import pdb; pdb.set_trace()
             player.image.fill(RED)
+
             if wait < 100:
                 blobs.draw(screen)
                 wait += 1
